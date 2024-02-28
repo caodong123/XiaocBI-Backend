@@ -14,6 +14,7 @@ import com.yupi.springbootinit.constant.FileConstant;
 import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
+import com.yupi.springbootinit.manager.AiManager;
 import com.yupi.springbootinit.model.dto.chart.*;
 
 import com.yupi.springbootinit.model.dto.file.UploadFileRequest;
@@ -22,6 +23,7 @@ import com.yupi.springbootinit.model.entity.Chart;
 import com.yupi.springbootinit.model.entity.Post;
 import com.yupi.springbootinit.model.entity.User;
 import com.yupi.springbootinit.model.enums.FileUploadBizEnum;
+import com.yupi.springbootinit.model.vo.BiResponse;
 import com.yupi.springbootinit.service.ChartService;
 import com.yupi.springbootinit.service.UserService;
 import com.yupi.springbootinit.utils.ExcelUtils;
@@ -55,6 +57,9 @@ public class ChartController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private AiManager aiManager;
 
     // region 增删改查
 
@@ -259,7 +264,7 @@ public class ChartController {
 
 
     @PostMapping("/gen")
-    public BaseResponse<String> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
                                              GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) throws Exception {
 
         //校验
@@ -271,55 +276,87 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length()>100,ErrorCode.PARAMS_ERROR,"参数过长");
         ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"目标为空");
 
+        /*//
+        final String prompt="你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容：\n" +
+                "\n" +
+                "分析需求：\n" +
+                "\n" +
+                "{数据分析的需求或者目标}\n" +
+                "\n" +
+                "原始数据：\n" +
+                "\n" +
+                "{csv格式的原始数据，用,作为分隔符}\n" +
+                "\n" +
+                "请根据这两部分内容，按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释）\n" +
+                "\n" +
+                "【【【【【\n" +
+                "\n" +
+                "{前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，比如注释}\n" +
+                "\n" +
+                "【【【【【\n" +
+                "\n" +
+                "{明确的数据分析结论、越详细越好，不要生成多余的注释}";*/
+
+        //拼接请求
         //用户输入
         StringBuilder userInput = new StringBuilder();
-        //预设
-        userInput.append("你是一个数据分析师，接下来我会告诉你分析目标和原始数据，请告诉我分析结果。").append("\n");
         //目标
-        userInput.append("目标：").append(goal).append("\n");
+        userInput.append("分析需求：").append("\n");
+        userInput.append(goal).append("\n");
         //原始数据
         //处理excel
         String data = ExcelUtils.excelToCsv(multipartFile);
-        userInput.append("原始数据").append("\n");
+        userInput.append("原始数据：").append("\n");
         userInput.append(data);
-        
-        //结果
-        String res = userInput.toString();
+        //请求
+        //模型id
+        final Long modelId=1762739391161651201L;
+        String response = aiManager.doChat(modelId, userInput.toString());
+
+        //提取结果
+        String[] splits = response.split("【【【【【");
+        if(splits.length<3){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"ai生成错误");
+        }
+
+        String chartCode = splits[1];
+        String analyseResult = splits[2];
+
+        //封装到返回类中
+        BiResponse biResponse = new BiResponse();
+        biResponse.setGenChart(chartCode);
+        biResponse.setGenResult(analyseResult);
 
 
-        return ResultUtils.success(res);
+        return ResultUtils.success(biResponse);
+    }
 
-        /*String biz = uploadFileRequest.getBiz();
-        FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
-        if (fileUploadBizEnum == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }.
-        validFile(multipartFile, fileUploadBizEnum);
-        User loginUser = userService.getLoginUser(request);
-        // 文件目录：根据业务、用户来划分
-        String uuid = RandomStringUtils.randomAlphanumeric(8);
-        String filename = uuid + "-" + multipartFile.getOriginalFilename();
-        String filepath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId(), filename);
-        File file = null;
-        try {
-            // 上传文件
-            file = File.createTempFile(filepath, null);
-            multipartFile.transferTo(file);
-            cosManager.putObject(filepath, file);
-            // 返回可访问地址
-            return ResultUtils.success(FileConstant.COS_HOST + filepath);
-        } catch (Exception e) {
-            log.error("file upload error, filepath = " + filepath, e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-        } finally {
-            if (file != null) {
-                // 删除临时文件
-                boolean delete = file.delete();
-                if (!delete) {
-                    log.error("file delete error, filepath = {}", filepath);
-                }
-            }
-        }*/
+
+    public static void main(String[] args) {
+        String str="【【【【【\n" +
+                "\n" +
+                "{\n" +
+                "title: {\n" +
+                "text: '人数变化趋势'\n" +
+                "},\n" +
+                "xAxis: {\n" +
+                "type: 'category',\n" +
+                "data: ['1号', '2号', '3号', '4号']\n" +
+                "},\n" +
+                "yAxis: {\n" +
+                "type: 'value'\n" +
+                "},\n" +
+                "series: [{\n" +
+                "data: [10, 20, 30, 40],\n" +
+                "type: 'line'\n" +
+                "}]\n" +
+                "}\n" +
+                "\n" +
+                "【【【【【\n" +
+                "\n" +
+                "根据数据分析结论：人数在1号到4号这四天内呈现逐渐增加的趋势。";
+
+        System.out.println(str.split("【【【【【").length);
     }
 
 
