@@ -276,33 +276,19 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length()>100,ErrorCode.PARAMS_ERROR,"参数过长");
         ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"目标为空");
 
-        /*//
-        final String prompt="你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容：\n" +
-                "\n" +
-                "分析需求：\n" +
-                "\n" +
-                "{数据分析的需求或者目标}\n" +
-                "\n" +
-                "原始数据：\n" +
-                "\n" +
-                "{csv格式的原始数据，用,作为分隔符}\n" +
-                "\n" +
-                "请根据这两部分内容，按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释）\n" +
-                "\n" +
-                "【【【【【\n" +
-                "\n" +
-                "{前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，比如注释}\n" +
-                "\n" +
-                "【【【【【\n" +
-                "\n" +
-                "{明确的数据分析结论、越详细越好，不要生成多余的注释}";*/
+        //获取登录用户
+        User loginUser = userService.getLoginUser(request);
 
         //拼接请求
         //用户输入
         StringBuilder userInput = new StringBuilder();
         //目标
         userInput.append("分析需求：").append("\n");
-        userInput.append(goal).append("\n");
+        String userGoal=goal;
+        if(StringUtils.isNotBlank(chartType)){
+            userGoal += "请使用"+chartType;
+        }
+        userInput.append(userGoal).append("\n");
         //原始数据
         //处理excel
         String data = ExcelUtils.excelToCsv(multipartFile);
@@ -310,7 +296,7 @@ public class ChartController {
         userInput.append(data);
         //请求
         //模型id
-        final Long modelId=1762739391161651201L;
+        final Long modelId=1762821784564355073L;
         String response = aiManager.doChat(modelId, userInput.toString());
 
         //提取结果
@@ -319,45 +305,44 @@ public class ChartController {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"ai生成错误");
         }
 
-        String chartCode = splits[1];
-        String analyseResult = splits[2];
+        String temp = splits[1].trim();
+        StringBuilder res = new StringBuilder();
+        for (int i = 0; i < temp.length(); i++) {
+            if(temp.charAt(i)!='\'') res.append(temp.charAt(i));
+            else res.append("\"");
+        }
+        String chartCode = res.toString();
+//        String chartCode = splits[1].trim();
+
+
+
+
+
+        String analyseResult = splits[2].trim();
+
+        //保存到数据库中
+        Chart chart = new Chart();
+        chart.setUserId(loginUser.getId());
+        chart.setChartType(chartType);
+        chart.setGoal(goal);
+        chart.setName(name);
+        chart.setGenResult(analyseResult);
+        chart.setChartData(chartCode);
+
+
+        boolean saved = chartService.save(chart);
+        ThrowUtils.throwIf(!saved,ErrorCode.SYSTEM_ERROR,"图表信息保存失败");
 
         //封装到返回类中
         BiResponse biResponse = new BiResponse();
         biResponse.setGenChart(chartCode);
         biResponse.setGenResult(analyseResult);
-
+        biResponse.setId(chart.getId());
 
         return ResultUtils.success(biResponse);
     }
 
 
-    public static void main(String[] args) {
-        String str="【【【【【\n" +
-                "\n" +
-                "{\n" +
-                "title: {\n" +
-                "text: '人数变化趋势'\n" +
-                "},\n" +
-                "xAxis: {\n" +
-                "type: 'category',\n" +
-                "data: ['1号', '2号', '3号', '4号']\n" +
-                "},\n" +
-                "yAxis: {\n" +
-                "type: 'value'\n" +
-                "},\n" +
-                "series: [{\n" +
-                "data: [10, 20, 30, 40],\n" +
-                "type: 'line'\n" +
-                "}]\n" +
-                "}\n" +
-                "\n" +
-                "【【【【【\n" +
-                "\n" +
-                "根据数据分析结论：人数在1号到4号这四天内呈现逐渐增加的趋势。";
-
-        System.out.println(str.split("【【【【【").length);
-    }
 
 
 }

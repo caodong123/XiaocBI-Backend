@@ -52,7 +52,7 @@ public class ExcelUtils {
         //去除null情况
         List<String> headList = head.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
         for (int i = 0; i < headList.size(); i++) {
-            res.append(headList.get(i)).append(" ");
+            res.append(headList.get(i)).append(",");
         }
         res.append("\n");
        // System.out.println(res);
@@ -62,7 +62,7 @@ public class ExcelUtils {
             //去除null情况
             List<String> dataList = datas.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
             for (int j = 0; j < dataList.size(); j++) {
-                res.append(dataList.get(j)).append(" ");
+                res.append(dataList.get(j)).append(",");
             }
             res.append("\n");
         }
