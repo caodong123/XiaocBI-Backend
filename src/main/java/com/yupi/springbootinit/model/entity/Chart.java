@@ -40,6 +40,11 @@ public class Chart implements Serializable {
     private String chartType;
 
     /**
+     * 生成图表数据
+     */
+    private String genChart;
+
+    /**
      * 生成结论
      */
     private String genResult;
@@ -64,6 +69,16 @@ public class Chart implements Serializable {
      */
     @TableLogic
     private Integer isDelete;
+
+    /**
+     * 状态
+     */
+    private String status;
+
+    /**
+     * 情况
+     */
+    private String execMessage;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -327,7 +327,8 @@ public class ChartController {
         chart.setGoal(goal);
         chart.setName(name);
         chart.setGenResult(analyseResult);
-        chart.setChartData(chartCode);
+        chart.setGenChart(chartCode);
+        chart.setChartData(data);
 
 
         boolean saved = chartService.save(chart);
