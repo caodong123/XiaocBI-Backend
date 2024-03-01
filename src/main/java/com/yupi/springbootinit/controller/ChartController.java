@@ -16,6 +16,7 @@ import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
 import com.yupi.springbootinit.manager.AiManager;
+import com.yupi.springbootinit.manager.RedisLimiterManager;
 import com.yupi.springbootinit.model.dto.chart.*;
 
 import com.yupi.springbootinit.model.dto.file.UploadFileRequest;
@@ -63,6 +64,9 @@ public class ChartController {
 
     @Resource
     private AiManager aiManager;
+
+    @Resource
+    private RedisLimiterManager  redisLimiterManager;
 
     // region 增删改查
 
@@ -291,6 +295,10 @@ public class ChartController {
 
         //获取登录用户
         User loginUser = userService.getLoginUser(request);
+
+        //限流
+        redisLimiterManager.doLimiter("genChartByAi"+loginUser.getId().toString());
+
 
         //拼接请求
         //用户输入
