@@ -1,6 +1,7 @@
 package com.yupi.springbootinit.controller;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -29,6 +30,7 @@ import com.yupi.springbootinit.service.UserService;
 import com.yupi.springbootinit.utils.ExcelUtils;
 import com.yupi.springbootinit.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -272,6 +275,16 @@ public class ChartController {
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
 
+        //校验文件
+        //校验文件后缀
+        String filename = multipartFile.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(filename); //后缀
+        final List<String> validSuffix = Arrays.asList("png","jpg","svg","jpeg","xlsx");
+        ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+        //校验文件大小
+        long size = multipartFile.getSize();
+        ThrowUtils.throwIf(size > 1024 *1024,ErrorCode.PARAMS_ERROR,"文件大小过大，超过1M");
+
         //校验合法性
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length()>100,ErrorCode.PARAMS_ERROR,"参数过长");
         ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"目标为空");
@@ -329,6 +342,7 @@ public class ChartController {
         chart.setGenResult(analyseResult);
         chart.setGenChart(chartCode);
         chart.setChartData(data);
+        chart.setStatus("succeed");
 
 
         boolean saved = chartService.save(chart);
