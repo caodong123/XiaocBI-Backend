@@ -44,6 +44,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 帖子接口
@@ -67,6 +69,9 @@ public class ChartController {
 
     @Resource
     private RedisLimiterManager  redisLimiterManager;
+
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
 
     // region 增删改查
 
@@ -335,10 +340,6 @@ public class ChartController {
         String chartCode = res.toString();
 //        String chartCode = splits[1].trim();
 
-
-
-
-
         String analyseResult = splits[2].trim();
 
         //保存到数据库中
@@ -363,6 +364,127 @@ public class ChartController {
         biResponse.setId(chart.getId());
 
         return ResultUtils.success(biResponse);
+    }
+
+
+    @PostMapping("/gen/async")
+    public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
+                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) throws Exception {
+
+        //校验
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String chartType = genChartByAiRequest.getChartType();
+
+        //校验文件
+        //校验文件后缀
+        String filename = multipartFile.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(filename); //后缀
+        final List<String> validSuffix = Arrays.asList("png","jpg","svg","jpeg","xlsx");
+        ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+        //校验文件大小
+        long size = multipartFile.getSize();
+        ThrowUtils.throwIf(size > 1024 *1024,ErrorCode.PARAMS_ERROR,"文件大小过大，超过1M");
+
+        //校验合法性
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length()>100,ErrorCode.PARAMS_ERROR,"参数过长");
+        ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"目标为空");
+
+        //获取登录用户
+        User loginUser = userService.getLoginUser(request);
+
+        //限流
+        redisLimiterManager.doLimiter("genChartByAi"+loginUser.getId().toString());
+
+
+        //拼接请求
+        //用户输入
+        StringBuilder userInput = new StringBuilder();
+        //目标
+        userInput.append("分析需求：").append("\n");
+        String userGoal=goal;
+        if(StringUtils.isNotBlank(chartType)){
+            userGoal += "请使用"+chartType;
+        }
+        userInput.append(userGoal).append("\n");
+        //原始数据
+        //处理excel
+        String data = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append("原始数据：").append("\n");
+        userInput.append(data);
+        //请求
+        //模型id
+        final Long modelId=1762821784564355073L;
+
+        //先把图表保存到数据库中
+        //保存到数据库中
+        Chart chart = new Chart();
+        chart.setUserId(loginUser.getId());
+        chart.setChartType(chartType);
+        chart.setGoal(goal);
+        chart.setName(name);
+        chart.setChartData(data);
+        chart.setStatus("wait");
+        boolean saved = chartService.save(chart);
+        ThrowUtils.throwIf(!saved,ErrorCode.SYSTEM_ERROR,"图表信息保存失败");
+
+        //提交一个任务
+        CompletableFuture.runAsync(()->{
+            Chart updateChart = new Chart();
+            updateChart.setId(chart.getId());
+            updateChart.setStatus("running");
+            boolean b = chartService.updateById(updateChart);
+            if(!b){
+                handleChartUpdateError(chart.getId(),"更新图表执行中信息失败");
+                return;
+            }
+            //调用AI
+            String response = aiManager.doChat(modelId, userInput.toString());
+            //提取结果
+            String[] splits = response.split("【【【【【");
+            if(splits.length<3){
+                handleChartUpdateError(chart.getId(),"Ai生成错误");
+            }
+            String temp = splits[1].trim();
+            StringBuilder res = new StringBuilder();
+            for (int i = 0; i < temp.length(); i++) {
+                if(temp.charAt(i)!='\'') res.append(temp.charAt(i));
+                else res.append("\"");
+            }
+            String chartCode = res.toString();
+//        String chartCode = splits[1].trim();
+            String analyseResult = splits[2].trim();
+            //再更新一次
+            Chart updateChartResult = new Chart();
+            updateChartResult.setId(chart.getId());
+            updateChartResult.setStatus("succeed");
+            updateChartResult.setGenChart(chartCode);
+            updateChartResult.setGenResult(analyseResult);
+            boolean b1 = chartService.updateById(updateChartResult);
+            if(!b1){
+                handleChartUpdateError(chart.getId(),"更新图表成功状态失败");
+            }
+
+        },threadPoolExecutor);
+
+        //封装到返回类中
+        BiResponse biResponse = new BiResponse();
+        biResponse.setId(chart.getId());
+
+        return ResultUtils.success(biResponse);
+    }
+
+    private void handleChartUpdateError(long chartId,String message){
+        Chart chart = new Chart();
+        chart.setId(chartId);
+        chart.setStatus("failed");
+        chart.setExecMessage(message);
+        boolean updateById = chartService.updateById(chart);
+        if(!updateById){
+            log.info("更新图表失败状态失败,id:"+chartId);
+        }
+
+
     }
 
 

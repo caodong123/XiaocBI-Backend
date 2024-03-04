@@ -27,7 +27,7 @@ public class RedissonConfig {
     private Integer database;
 
     @Bean
-    public RedissonClient redissonClient(){
+    public RedissonClient getRedissonClient(){
         // 创建Redisson客户端连接
         Config config = new Config();
         config.useSingleServer()   //添加单机redis配置
