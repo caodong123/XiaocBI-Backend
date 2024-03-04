@@ -28,6 +28,7 @@ import com.yupi.springbootinit.model.enums.FileUploadBizEnum;
 import com.yupi.springbootinit.model.vo.BiResponse;
 import com.yupi.springbootinit.service.ChartService;
 import com.yupi.springbootinit.service.UserService;
+import com.yupi.springbootinit.utils.AIUtil;
 import com.yupi.springbootinit.utils.ExcelUtils;
 import com.yupi.springbootinit.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -322,14 +323,15 @@ public class ChartController {
         userInput.append(data);
         //请求
         //模型id
-        final Long modelId=1762821784564355073L;
-        String response = aiManager.doChat(modelId, userInput.toString());
+//        final Long modelId=1762821784564355073L;
+//        String response = aiManager.doChat(modelId, userInput.toString());
+        AIUtil aiUtil = new AIUtil();
+        String response = aiUtil.doChat(userInput.toString());
+
+
 
         //提取结果
         String[] splits = response.split("【【【【【");
-        if(splits.length<3){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"ai生成错误");
-        }
 
         String temp = splits[1].trim();
         StringBuilder res = new StringBuilder();
@@ -337,10 +339,8 @@ public class ChartController {
             if(temp.charAt(i)!='\'') res.append(temp.charAt(i));
             else res.append("\"");
         }
-        String chartCode = res.toString();
-//        String chartCode = splits[1].trim();
-
-        String analyseResult = splits[2].trim();
+        String chartCode = res.toString().split("】】】】")[0];
+        String analyseResult = res.toString().split("】】】】")[1];
 
         //保存到数据库中
         Chart chart = new Chart();
@@ -414,7 +414,7 @@ public class ChartController {
         userInput.append(data);
         //请求
         //模型id
-        final Long modelId=1762821784564355073L;
+//        final Long modelId=1762821784564355073L;
 
         //先把图表保存到数据库中
         //保存到数据库中
@@ -441,25 +441,25 @@ public class ChartController {
             //调用AI
             String response = null;
             try {
-                response = aiManager.doChat(modelId, userInput.toString());
+//                response = aiManager.doChat(modelId, userInput.toString());
+                AIUtil aiUtil = new AIUtil();
+                 response = aiUtil.doChat(userInput.toString());
             } catch (Exception e) {
-
                 handleChartUpdateError(chart.getId(),"Ai生成错误");
             }
+
             //提取结果
             String[] splits = response.split("【【【【【");
-            if(splits.length<3){
-                handleChartUpdateError(chart.getId(),"Ai生成错误");
-            }
+
             String temp = splits[1].trim();
             StringBuilder res = new StringBuilder();
             for (int i = 0; i < temp.length(); i++) {
                 if(temp.charAt(i)!='\'') res.append(temp.charAt(i));
                 else res.append("\"");
             }
-            String chartCode = res.toString();
-//        String chartCode = splits[1].trim();
-            String analyseResult = splits[2].trim();
+            String chartCode = res.toString().split("】】】】")[0];
+            String analyseResult = res.toString().split("】】】】")[1];
+
             //再更新一次
             Chart updateChartResult = new Chart();
             updateChartResult.setId(chart.getId());

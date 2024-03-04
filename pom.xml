@@ -129,6 +129,13 @@
             <artifactId>redisson</artifactId>
             <version>3.27.1</version>
         </dependency>
+<!--        星火-->
+        <!--修改version为最新稳定版-->
+        <dependency>
+            <groupId>io.github.briqt</groupId>
+            <artifactId>xunfei-spark4j</artifactId>
+            <version>1.2.0</version>
+        </dependency>
     </dependencies>
 
     <build>
