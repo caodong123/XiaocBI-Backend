@@ -439,7 +439,13 @@ public class ChartController {
                 return;
             }
             //调用AI
-            String response = aiManager.doChat(modelId, userInput.toString());
+            String response = null;
+            try {
+                response = aiManager.doChat(modelId, userInput.toString());
+            } catch (Exception e) {
+
+                handleChartUpdateError(chart.getId(),"Ai生成错误");
+            }
             //提取结果
             String[] splits = response.split("【【【【【");
             if(splits.length<3){
