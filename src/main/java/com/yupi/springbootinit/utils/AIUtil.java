@@ -7,10 +7,12 @@ import io.github.briqt.spark4j.model.SparkMessage;
 import io.github.briqt.spark4j.model.SparkSyncChatResponse;
 import io.github.briqt.spark4j.model.request.SparkRequest;
 import io.github.briqt.spark4j.model.response.SparkTextUsage;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class AIUtil {
 
     public String doChat(String msg){
@@ -49,6 +51,7 @@ public class AIUtil {
                 .build();
         String res="";
         try {
+            log.warn("Ai生成中 请稍等");
             // 同步调用
             SparkSyncChatResponse chatResponse = sparkClient.chatSync(sparkRequest);
             SparkTextUsage textUsage = chatResponse.getTextUsage();
