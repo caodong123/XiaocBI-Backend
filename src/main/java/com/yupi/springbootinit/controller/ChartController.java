@@ -6,6 +6,8 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.springbootinit.annotation.AuthCheck;
+import com.yupi.springbootinit.bizmq.BiConsumer;
+import com.yupi.springbootinit.bizmq.BiProducer;
 import com.yupi.springbootinit.common.BaseResponse;
 import com.yupi.springbootinit.common.DeleteRequest;
 import com.yupi.springbootinit.common.ErrorCode;
@@ -39,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import redis.clients.jedis.commands.BinaryJedisCommands;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -66,13 +69,13 @@ public class ChartController {
     private UserService userService;
 
     @Resource
-    private AiManager aiManager;
-
-    @Resource
     private RedisLimiterManager redisLimiterManager;
 
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+
+    @Resource
+    private BiProducer biProducer;
 
     // region 增删改查
 
@@ -500,6 +503,62 @@ public class ChartController {
 
         return ResultUtils.success(biResponse);
     }
+
+    @PostMapping("/gen/async/mq")
+    public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
+                                                      GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) throws Exception {
+        //校验
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String chartType = genChartByAiRequest.getChartType();
+
+        //校验文件
+        //校验文件后缀
+        String filename = multipartFile.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(filename); //后缀
+        final List<String> validSuffix = Arrays.asList("png", "jpg", "svg", "jpeg", "xlsx");
+        ThrowUtils.throwIf(!validSuffix.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
+        //校验文件大小
+        long size = multipartFile.getSize();
+        ThrowUtils.throwIf(size > 1024 * 1024, ErrorCode.PARAMS_ERROR, "文件大小过大，超过1M");
+
+        //校验合法性
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "参数过长");
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+
+        //获取登录用户
+        User loginUser = userService.getLoginUser(request);
+
+        //限流
+        redisLimiterManager.doLimiter("genChartByAi" + loginUser.getId().toString());
+
+        //原始数据
+        //处理excel
+        String data = ExcelUtils.excelToCsv(multipartFile);
+
+        //先把图表保存到数据库中
+        //保存到数据库中
+        Chart chart = new Chart();
+        chart.setUserId(loginUser.getId());
+        chart.setChartType(chartType);
+        chart.setGoal(goal);
+        chart.setName(name);
+        chart.setChartData(data);
+        chart.setStatus("wait");
+        boolean saved = chartService.save(chart);
+        ThrowUtils.throwIf(!saved, ErrorCode.SYSTEM_ERROR, "图表信息保存失败");
+
+        //传递一个消息 把要ai生成的图表对应的id传递给消息队列，消息队列拿到后可以取出数据 拼接然后生成
+        biProducer.sendMessage(chart.getId().toString());
+
+        //封装到返回类中
+        BiResponse biResponse = new BiResponse();
+        biResponse.setId(chart.getId());
+
+        return ResultUtils.success(biResponse);
+    }
+
+
 
     private void handleChartUpdateError(long chartId, String message) {
         Chart chart = new Chart();
