@@ -18,9 +18,9 @@ public class AIUtil {
     public String doChat(String msg){
         SparkClient sparkClient = new SparkClient();
 // 设置认证信息
-        sparkClient.appid = "0bddfedd";
-        sparkClient.apiKey = "150be232182254626206c00f9021e271";
-        sparkClient.apiSecret = "MjYzMTUyMjMxNTg0Y2VlYjQwODNjOGU2";
+        sparkClient.appid = "********";
+        sparkClient.apiKey = "*********";
+        sparkClient.apiSecret = "*******";
 
         // 消息列表，可以在此列表添加历史对话记录
         List<SparkMessage> messages = new ArrayList<>();
