@@ -16,11 +16,13 @@ public class InitMq {
 
     public static void main(String[] args) throws IOException, TimeoutException {
         //创建交换机和队列
-
         //创建连接工厂
         ConnectionFactory factory = new ConnectionFactory();
         //设置ip地址
-        factory.setHost("localhost");
+        factory.setHost("114.132.95.77");
+        factory.setUsername("admin");
+        factory.setPassword("123456");
+        factory.setPort(5672);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
         //创建交换机 direct交换机
@@ -29,6 +31,6 @@ public class InitMq {
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
         //建立绑定
         channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "code");
-
+        System.out.println("ok");
     }
 }
