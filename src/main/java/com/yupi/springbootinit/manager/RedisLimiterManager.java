@@ -1,9 +1,7 @@
 package com.yupi.springbootinit.manager;
 
 import com.yupi.springbootinit.common.ErrorCode;
-import com.yupi.springbootinit.config.RedissonConfig;
 import com.yupi.springbootinit.exception.BusinessException;
-import com.yupi.springbootinit.exception.ThrowUtils;
 import org.redisson.api.RRateLimiter;
 import org.redisson.api.RateIntervalUnit;
 import org.redisson.api.RateType;
@@ -21,7 +19,7 @@ public class RedisLimiterManager {
     public void doLimiter(String key){
         //创建限流器
         RRateLimiter rateLimiter = redissonClient.getRateLimiter(key);
-        //每秒两次请求
+        //没秒不能超过两次请求
         rateLimiter.trySetRate(RateType.OVERALL, 2, 1, RateIntervalUnit.SECONDS);
         //获取令牌
         final int num=1;  //一次请求的令牌数

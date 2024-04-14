@@ -83,6 +83,9 @@ public class BiConsumer {
             handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
         }
         log.info("收到消息:"+message);
+
+
+
         //手动确认ack
         channel.basicAck(deliverTag,false);
     }
@@ -119,8 +122,6 @@ public class BiConsumer {
         if (!updateById) {
             log.info("更新图表失败状态失败,id:" + chartId);
         }
-
-
     }
 
 }

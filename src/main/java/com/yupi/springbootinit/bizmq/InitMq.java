@@ -19,9 +19,9 @@ public class InitMq {
         //创建连接工厂
         ConnectionFactory factory = new ConnectionFactory();
         //设置ip地址
-        factory.setHost("114.132.95.77");
-        factory.setUsername("admin");
-        factory.setPassword("123456");
+        factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
         factory.setPort(5672);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();

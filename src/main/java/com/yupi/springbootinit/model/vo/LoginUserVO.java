@@ -34,6 +34,11 @@ public class LoginUserVO implements Serializable {
     private String userProfile;
 
     /**
+     * ai剩余调用次数
+     */
+    private Integer aiCount;
+
+    /**
      * 用户角色：user/admin/ban
      */
     private String userRole;

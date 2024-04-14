@@ -7,19 +7,19 @@ spring:
   # 数据库配置  云服务器上
   # todo 需替换配置
   datasource:
-    driver-class-name:
-    url:
-    username:
-    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://114.132.95.77:3306/xiaocbi
+    username: caodong
+    password: 123456
   redis:
-    database:
-    host:
-    port:
-    timeout:
-    password:
+    database: 1
+    host:  114.132.95.77
+    port: 6379
+    timeout: 5000
+    password: 123456
   rabbitmq:
-    host:
-    port:
-    username:
-    password:
+    host: 114.132.95.77
+    port: 5672
+    username: admin
+    password: 123456
 

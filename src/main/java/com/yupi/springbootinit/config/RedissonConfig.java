@@ -1,12 +1,8 @@
 package com.yupi.springbootinit.config;
 
 
-import io.swagger.models.auth.In;
 import lombok.Data;
 import org.redisson.Redisson;
-import org.redisson.api.RRateLimiter;
-import org.redisson.api.RateIntervalUnit;
-import org.redisson.api.RateType;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,8 +28,8 @@ public class RedissonConfig {
         Config config = new Config();
         config.useSingleServer()   //添加单机redis配置
                         .setAddress("redis://"+host+":"+port)
-                                .setDatabase(database)
-                .setPassword(String.valueOf(password));
+                                .setDatabase(database);
+//                .setPassword(String.valueOf(password));
 
         RedissonClient redisson = Redisson.create(config);
 

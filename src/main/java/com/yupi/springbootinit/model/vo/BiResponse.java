@@ -11,5 +11,4 @@ public class BiResponse {
     private Long id;
     private String genChart;
     private String genResult;
-
 }

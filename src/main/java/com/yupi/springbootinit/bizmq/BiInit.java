@@ -17,6 +17,8 @@ public class BiInit {
         ConnectionFactory factory = new ConnectionFactory();
         //设置ip地址
         factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
         //创建交换机 direct交换机
@@ -25,5 +27,6 @@ public class BiInit {
         channel.queueDeclare(BiConstant.QUEUE_NAME, true, false, false, null);
         //建立绑定
         channel.queueBind(BiConstant.QUEUE_NAME, BiConstant.EXCHANGE_NAME, BiConstant.BI_ROUTING_KEY);
+        System.out.println("ok");
     }
 }
