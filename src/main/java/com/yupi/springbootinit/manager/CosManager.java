@@ -48,4 +48,5 @@ public class CosManager {
                 file);
         return cosClient.putObject(putObjectRequest);
     }
+
 }

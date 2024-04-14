@@ -1,5 +1,6 @@
 package com.yupi.springbootinit.controller;
 
+import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.springbootinit.annotation.AuthCheck;
 import com.yupi.springbootinit.common.BaseResponse;
@@ -286,6 +287,25 @@ public class UserController {
         User user = new User();
         BeanUtils.copyProperties(userUpdateMyRequest, user);
         user.setId(loginUser.getId());
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * @param userUpdateRequest
+     * @return
+     */
+    @PostMapping("/addAiCount")
+    public BaseResponse<Boolean> addAiCount(@RequestBody UserUpdateRequest userUpdateRequest){
+        if (userUpdateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        Long id = userUpdateRequest.getId();
+        User user = userService.getById(id);
+        Integer aiCount = user.getAiCount();
+        user.setAiCount(aiCount+10);
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);

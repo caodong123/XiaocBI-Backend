@@ -22,6 +22,11 @@ public class UserUpdateRequest implements Serializable {
     private String userName;
 
     /**
+     * ai调用次数
+     */
+    private Integer aiCount;
+
+    /**
      * 用户头像
      */
     private String userAvatar;
