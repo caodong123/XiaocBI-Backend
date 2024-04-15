@@ -82,12 +82,7 @@ wx:
     appSecret: xxx
 # 对象存储
 # todo 需替换配置
-cos:
-  client:
-    accessKey: AKID45KWdm4OezO4Y1PpHxa7f8c3T9pjBjEv
-    secretKey: iSI0ns1gLyY6b2PjAWhzRcgpJ74Kj5W8
-    region: ap-shanghai
-    bucket: web-object-1318943201
+
 # 接口文档配置
 knife4j:
   enable: true
