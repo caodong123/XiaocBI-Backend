@@ -1,162 +1,40 @@
-# SpringBoot 项目初始模板
+# XiaoC BI 项目介绍
 
-test
-基于 Java SpringBoot 的项目初始模板，整合了常用框架和主流业务的示例代码
+## 概述
 
-只需 1 分钟即可完成内容网站的后端！！！大家还可以在此基础上快速开发自己的项目。
+XiaoC BI 是一个创新的智能商业智能（BI）项目，旨在通过先进的技术手段，为用户提供一个直观、高效且易于使用的数据分析解决方案。通过XiaoC BI，用户只需简单地提供分析目标和相关数据，系统便能够自动生成深度分析结论，并以丰富的可视化形式展示数据，极大地提高了决策效率和准确性。
 
-[toc]
+## 核心功能
 
-## 模板特点
+- **智能分析**：XiaoC BI 利用机器学习和人工智能算法，根据用户输入的分析目标，自动识别数据模式，生成有价值的分析结论。
+- **数据可视化**：系统提供多种图表和可视化工具，如柱状图、折线图、饼图等，帮助用户以直观的方式理解数据。
+- **用户友好的操作界面**：通过简洁明了的用户界面，用户可以轻松上传数据、设置分析参数，并即时查看分析结果。
+- **实时数据处理**：借助于强大的后端架构，XiaoC BI 能够处理大量实时数据，确保分析结果的时效性。
 
-### 主流框架 & 特性
+## 技术栈
 
-- Spring Boot 2.7.x（贼新）
-- Spring MVC
-- MyBatis + MyBatis Plus 数据访问（开启分页）
-- Spring Boot 调试工具和项目处理器
-- Spring AOP 切面编程
-- Spring Scheduler 定时任务
-- Spring 事务注解
+XiaoC BI 项目的后端采用 Spring Boot 框架构建，保证了系统的稳定性和可扩展性。前端则使用 React 技术栈，为用户提供流畅的交互体验。此外，项目还整合了以下关键技术：
 
-### 数据存储
+- **Redis**：作为内存数据结构存储，用于缓存热点数据和会话信息，提高系统的响应速度和处理能力。
+- **RabbitMQ**：消息队列系统，用于处理异步任务和数据流，确保数据处理的稳定性和可靠性。
+- **MySQL**：关系型数据库管理系统，用于存储结构化数据，保证数据的持久化和一致性。
 
-- MySQL 数据库
-- Redis 内存数据库
-- Elasticsearch 搜索引擎
-- 腾讯云 COS 对象存储
+## 应用场景
 
-### 工具类
+XiaoC BI 适用于各种规模的企业，尤其是那些需要快速、准确数据分析以支持决策的组织。无论是市场分析、销售预测、客户行为分析还是运营监控，XiaoC BI 都能提供强大的支持。
 
-- Easy Excel 表格处理
-- Hutool 工具库
-- Apache Commons Lang3 工具类
-- Lombok 注解
+## 优势
 
-### 业务特性
+- **高效**：通过自动化的数据分析流程，大大减少了人工分析的时间和成本。
+- **准确**：利用先进的算法和模型，提供更为精确的数据分析结果。
+- **易用**：简洁直观的用户界面，降低了用户的使用门槛。
+- **可定制**：用户可以根据自己的需求定制分析报告和可视化展示。
+- **安全**：采用严格的数据安全措施，确保用户数据的保密性和完整性。
 
-- Spring Session Redis 分布式登录
-- 全局请求响应拦截器（记录日志）
-- 全局异常处理器
-- 自定义错误码
-- 封装通用响应类
-- Swagger + Knife4j 接口文档
-- 自定义权限注解 + 全局校验
-- 全局跨域处理
-- 长整数丢失精度解决
-- 多环境配置
+## 未来展望
 
+随着技术的不断进步，XiaoC BI 将持续优化其智能分析算法，提升用户体验，并探索更多的数据源和分析场景。我们相信，XiaoC BI 将成为企业决策的重要助手，帮助他们在数据驱动的时代中取得成功。
 
-## 业务功能
+## 结语
 
-- 提供示例 SQL（用户、帖子、帖子点赞、帖子收藏表）
-- 用户登录、注册、注销、更新、检索、权限管理
-- 帖子创建、删除、编辑、更新、数据库检索、ES 灵活检索
-- 帖子点赞、取消点赞
-- 帖子收藏、取消收藏、检索已收藏帖子
-- 帖子全量同步 ES、增量同步 ES 定时任务
-- 支持微信开放平台登录
-- 支持微信公众号订阅、收发消息、设置菜单
-- 支持分业务的文件上传
-
-### 单元测试
-
-- JUnit5 单元测试
-- 示例单元测试类
-
-### 架构设计
-
-- 合理分层
-
-
-## 快速上手
-
-> 所有需要修改的地方鱼皮都标记了 `todo`，便于大家找到修改的位置~
-
-### MySQL 数据库
-
-1）修改 `application.yml` 的数据库配置为你自己的：
-
-```yml
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/my_db
-    username: root
-    password: 123456
-```
-
-2）执行 `sql/create_table.sql` 中的数据库语句，自动创建库表
-
-3）启动项目，访问 `http://localhost:8101/api/doc.html` 即可打开接口文档，不需要写前端就能在线调试接口了~
-
-![](doc/swagger.png)
-
-### Redis 分布式登录
-
-1）修改 `application.yml` 的 Redis 配置为你自己的：
-
-```yml
-spring:
-  redis:
-    database: 1
-    host: localhost
-    port: 6379
-    timeout: 5000
-    password: 123456
-```
-
-2）修改 `application.yml` 中的 session 存储方式：
-
-```yml
-spring:
-  session:
-    store-type: redis
-```
-
-3）移除 `MainApplication` 类开头 `@SpringBootApplication` 注解内的 exclude 参数：
-
-修改前：
-
-```java
-@SpringBootApplication(exclude = {RedisAutoConfiguration.class})
-```
-
-修改后：
-
-
-```java
-@SpringBootApplication
-```
-
-### Elasticsearch 搜索引擎
-
-1）修改 `application.yml` 的 Elasticsearch 配置为你自己的：
-
-```yml
-spring:
-  elasticsearch:
-    uris: http://localhost:9200
-    username: root
-    password: 123456
-```
-
-2）复制 `sql/post_es_mapping.json` 文件中的内容，通过调用 Elasticsearch 的接口或者 Kibana Dev Tools 来创建索引（相当于数据库建表）
-
-```
-PUT post_v1
-{
- 参数见 sql/post_es_mapping.json 文件
-}
-```
-
-这步不会操作的话需要补充下 Elasticsearch 的知识，或者自行百度一下~
-
-3）开启同步任务，将数据库的帖子同步到 Elasticsearch
-
-找到 job 目录下的 `FullSyncPostToEs` 和 `IncSyncPostToEs` 文件，取消掉 `@Component` 注解的注释，再次执行程序即可触发同步：
-
-```java
-// todo 取消注释开启任务
-//@Component
-```
+XiaoC BI 是一个具有前瞻性的智能BI项目，它通过结合最新的技术和用户需求，为企业提供了一个强大的数据分析平台。我们期待与您一起，探索数据的力量，共创美好的未来。
